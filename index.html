@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html data-webtui-theme="catppuccin-mocha">
+  <head>
+    <meta charset="UTF-8">
+    <title>[bitTerm]</title>
+    <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
+    <style>
+      @import "./css/dist/base.css";
+      @import "./css/dist/utils/box.css";
+      @import "./css/dist/components/typography.css";
+      @import "./css/dist/components/button.css";
+      @import "./css/dist/components/badge.css";
+      @import "./css/dist/components/table.css";
+      @import "./css/dist/components/input.css";
+      @import "./css/dist/components/popover.css";
+      @import "./theme-catppuccin/dist/index.css";
+      @import "./theme-nord/dist/index.css";
+      @import "./plugin-nf/dist/index.css";
+    
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: var(--background0);
+        color: var(--foreground0);
+        font-family: 'JetBrains Mono', monospace,"Symbols Nerd Font";
+      }
+      @layer components {
+        [is-~="toolbar"] {
+          display: flex;
+          align-items: center;
+          gap: 2ch;
+          padding: 1lh 2ch;
+          border-bottom: 0.2ch solid var(--box-border-color);
+          background: var(--background1);
+        }
+        [is-~="main-content"] {
+          display: flex;
+          flex-direction: column;
+          flex: 1 1 auto;
+          min-height: 0;
+          height: 0;
+        }
+        [is-~="torrent-table-container"] {
+          flex: 1 1 auto;
+          max-height: none;
+          overflow: auto;
+          padding: 2ch;
+          background: var(--background0);
+          min-width: 0;
+        }
+        [is-~="torrent-table-hint"] {
+          margin-bottom: 1ch;
+          color: var(--foreground1);
+          font-size: 1em;
+        }
+        [is-~="torrent-list"] {
+          display: flex;
+          flex-direction: column;
+          gap: 2lh;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+        [is-~="box"][data-torrent] {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 1lh;
+          padding: 1lh 2ch;
+          min-height: 4lh;
+          background: var(--background1);
+        }
+        [is-~="box"][data-torrent].selected {
+          font-weight: bold;
+        }
+        [is-~="torrent-main"] {
+          flex: 1 1 0;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5lh;
+        }
+        [is-~="torrent-title-row"] {
+          display: flex;
+          align-items: center;
+          gap: 1ch;
+          min-width: 0;
+        }
+        [is-~="torrent-name"] {
+          font-weight: 600;
+          font-size: 1.1em;
+          flex: 1 1 0;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        [is-~="torrent-size"] {
+          color: var(--foreground2);
+          font-size: 1em;
+          margin-left: 1ch;
+          flex-shrink: 0;
+        }
+        [is-~="torrent-progress-bar"] {
+          height: 1lh;
+          background: var(--background3);
+          overflow: hidden;
+          margin: 0.5lh 0;
+          width: 100%;
+          position: relative;
+        }
+        [is-~="torrent-progress-inner"] {
+          height: 100%;
+          background: var(--green, #a6e3a1);
+          transition: width 0.3s;
+        }
+        [is-~="torrent-progress-label"] {
+          position: absolute;
+          right: 2ch;
+          top: 0;
+          bottom: 0;
+          display: flex;
+          align-items: center;
+          font-size: 1em;
+          font-weight: bold;
+          color: var(--background0);
+          z-index: 1;
+        }
+        [is-~="input"] {
+          background: var(--background0);
+        }
+        [is-~="torrent-meta-row"] {
+          display: flex;
+          align-items: center;
+          gap: 2ch;
+          font-size: 1em;
+          flex-wrap: wrap;
+        }
+        [is-~="torrent-meta-row"] > * {
+          flex-shrink: 0;
+        }
+        [is-~="torrent-actions"] {
+          display: flex;
+          flex-direction: row;
+          gap: 1ch;
+          margin-left: auto;
+        }
+        [is-~="torrent-expanded-info"] {
+          margin-top: 1lh;
+          padding: 1lh;
+          background: var(--background1);
+          border-top: 0.2ch solid var(--box-border-color);
+          width: 100%;
+          box-sizing: border-box;
+        }
+        [is-~="file-list"] {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 0.2lh 2ch;
+          font-size: 0.95em;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          border-top: 1px solid var(--box-border-color);
+          align-items: center;
+        }
+        [is-~="file-list-item"] {
+          display: flex;
+          align-items: center;
+          min-height: 2.2lh;
+          height: 2.2lh;
+        }
+        /* Add right border to left column items */
+        [is-~="file-list-item"]:nth-child(2n-1) {
+          border-right: 1px solid var(--box-border-color);
+          padding-right: 2ch;
+        }
+        @media (max-width: 600px) {
+          [is-~="file-list"] {
+            grid-template-columns: 1fr;
+          }
+          [is-~="file-list-item"]:nth-child(2n-1) {
+            border-right: none;
+            padding-right: 0.2ch;
+          }
+        }
+        [is-~="file-name"] {
+          flex: 1 1 0;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          line-height: 1.4;
+        }
+        [is-~="file-size"] {
+          flex: 0 0 auto;
+          color: var(--foreground2);
+          font-size: 1em;
+          margin-right: 0.5ch;
+        }
+        /* Unified button styling */
+        [is-~="button"] {
+          padding: 0.5lh 1ch;
+          border: 0.1ch solid var(--box-border-color);
+          background: var(--background1);
+          color: var(--foreground0);
+          font-family: inherit;
+          font-size: 1em;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        [is-~="button"][variant-="primary"] {
+          background: var(--foreground0);
+          color: var(--background0);
+        }
+        [is-~="button"][variant-="secondary"] {
+          background: var(--background1);
+          color: var(--foreground0);
+        }
+        /* Override font for download buttons to use Nerd Font */
+        [is-~="button"].download-link {
+          font-family: 'JetBrains Mono', monospace,"Symbols Nerd Font";
+          line-height: 1.4;
+          padding: 0.4lh 1ch;
+          vertical-align: middle;
+        }
+        
+        /* Center file names vertically */
+        .file-download-btn {
+          flex-shrink: 0;
+          margin-left: 0.5ch;
+          display: flex;
+          align-items: center;
+          height: 100%;
+        }
+        .torrent-peers-badge {
+          display: inline-block;
+          width: 12ch;
+          text-align: center;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .torrent-down-badge{
+          display: inline-block;
+          width: 20ch; /* Increase width */
+          text-align: center;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .torrent-up-badge {
+          display: inline-block;
+          width: 20ch; /* Increase width */
+          text-align: center;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+        .torrent-eta-badge {
+          display: inline-block;
+          width: 20ch; /* Increase width */
+          text-align: center;
+          overflow: hidden;
+          white-space: nowrap;
+        }
+      }
+      .torrent-table-hint {
+        margin-bottom: 0.5rem;
+        color: var(--foreground1);
+        font-size: 0.95em;
+      }
+      #torrentTable tr {
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      #torrentTable tr:hover {
+        background: var(--background1);
+      }
+      #torrentTable tr[selected] {
+        outline: 2px solid var(--green, var(--table-border-color));
+        background: var(--background2);
+        font-weight: bold;
+      }
+      .table-scroll { 
+        overflow-x: auto; 
+      }
+      .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin: 0;
+        padding: 0;
+      }
+      .info-list-item {
+        display: flex;
+        gap: 0.5rem;
+        align-items: baseline;
+      }
+      .info-label {
+        color: var(--foreground2);
+        min-width: 90px;
+        font-size: 0.95em;
+      }
+      .info-value {
+        color: var(--foreground0);
+        font-size: 1em;
+        word-break: break-all;
+      }
+      .file-download-btn {
+        margin-left: 0.5ch;
+      }
+      .status-bar {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 0.5rem 1rem;
+        border-top: 1px solid var(--box-border-color);
+        font-size: 0.95em;
+        background: var(--background1);
+      }
+      .download-link {
+        margin-left: 0.5ch;
+        font-size: 1em;
+      }
+      summary {
+	      background-color: var(--background1);
+	    }
+	    .popover-content {
+        background-color: var(--background0);
+        white-space: nowrap;
+        padding: 0.5lh 1ch;
+        border: 0.1ch solid var(--box-border-color);
+	    }
+      /* Themed browser scrollbar for WebTUI */
+      ::-webkit-scrollbar {
+        width: 12px;
+        background: var(--background1);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--foreground2);
+        border-radius: 6px;
+        border: 2px solid var(--background1);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--blue);
+      }
+      /* Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--foreground2) var(--background1);
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Web Name Header -->
+    <header style="padding: 1lh 2ch 0.5lh 2ch; display: flex; justify-content: space-between; align-items: center;">
+      <span is-="typography" variant-="h2" style="font-size:1.5ch; font-weight:bold;">
+        <span style="color:var(--blue);">[</span>
+        <span style="color:var(--green);">bit</span>
+        <span style="color:var(--yellow);">Term</span>
+        <span style="color:var(--blue);">]</span>
+      </span>
+      
+      <!-- Theme Selector -->
+      <details is-="popover" position-="bottom baseline-right">
+        <summary is-="button" variant-="secondary" size-="small">
+          [ Theme]
+        </summary>
+          <div style="display: flex; flex-direction: column;">
+            <div class="popover-content" onclick="setTheme('catppuccin-mocha')">
+              Catppuccin Mocha
+            </div>
+            <div class="popover-content" onclick="setTheme('nord')">
+              Nord
+            </div>
+            <div class="popover-content" onclick="setTheme('dark')">
+              Dark
+            </div>
+            <div class="popover-content" onclick="setTheme('light')">
+              Light
+            </div>
+        </div>
+      </details>
+    </header>
+    <!-- Toolbar -->
+    <div is-="toolbar">
+        <label box-="square" shear-="top" style="flex:1; min-width:20ch; margin-right:2ch;">
+          <span is-="badge" variant-="foreground0" style="margin-bottom:0.5lh;">Magnet/URL</span>
+          <input is-="input" id="torrentInput" type="text" placeholder="Paste magnet or .torrent URL here" style="width:100%;">
+        </label>
+        <button is-="button" size-="medium" variant-="primary" id="addUrlBtn">[ Add URL]</button>
+      </div>
+    <!-- Torrent Table -->
+    <div is-="main-content">
+      <div is-="torrent-table-container" class="table-scroll">
+        <div is-="torrent-table-hint">Click a torrent to view details.</div>
+        <ul is-="torrent-list" id="torrentList"></ul>
+      </div>
+      <!-- Info panel removed; all info is now in expandable cards -->
+    </div>
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span is-="badge" variant-="blue">Torrents: <span id="statusTorrents">0</span></span>
+      <span is-="badge" variant-="green">Down: <span id="statusDown">0 B/s</span></span>
+      <span is-="badge" variant-="red">Up: <span id="statusUp">0 B/s</span></span>
+      <span is-="badge" variant-="yellow">Peers: <span id="statusPeers">0</span></span>
+      <span is-="badge" variant-="foreground0" style="margin-left: auto;">
+        <a href="https://webtui.ironclad.sh" target="_blank" style="color: inherit; text-decoration: none;">Made With WebTUI</a>
+      </span>
+    </div>
+    <script>
+      function prettyBytes(num) {
+        const units = ['B', 'kB', 'MB', 'GB', 'TB']
+        if (num < 1) return num + ' B'
+        const exponent = Math.min(Math.floor(Math.log(num) / Math.log(1000)), units.length - 1)
+        const unit = units[exponent]
+        num = Number((num / Math.pow(1000, exponent)).toFixed(2))
+        return num + ' ' + unit
+      }
+      function prettyETA(seconds) {
+        if (!isFinite(seconds) || seconds === Infinity) return '∞'
+        if (seconds < 1) return '0s'
+        const m = Math.floor(seconds / 60)
+        const s = Math.floor(seconds % 60)
+        if (m < 1) return `${s}s`
+        if (m < 60) return `${m}m ${s}s`
+        const h = Math.floor(m / 60)
+        return `${h}h ${m % 60}m`
+      }
+      function pad(str, len) {
+        str = String(str);
+        while (str.length < len) str = ' ' + str;
+        return str;
+      }
+      const client = new window.WebTorrent()
+      const $torrentInput = document.getElementById('torrentInput')
+      const $addUrlBtn = document.getElementById('addUrlBtn')
+      const $torrentList = document.getElementById('torrentList')
+      const $statusTorrents = document.getElementById('statusTorrents')
+      const $statusDown = document.getElementById('statusDown')
+      const $statusUp = document.getElementById('statusUp')
+      const $statusPeers = document.getElementById('statusPeers')
+      let selectedTorrentInfoHash = null;
+      // Cache for file blob URLs: { [infoHash]: { [fileIdx]: url } }
+      const fileBlobUrlCache = new Map();
+      // Ensure all handlers are attached after DOM is loaded
+      window.addEventListener('DOMContentLoaded', function() {
+        const $addUrlBtn = document.getElementById('addUrlBtn');
+        const $torrentInput = document.getElementById('torrentInput');
+        $addUrlBtn.onclick = function() {
+          const val = $torrentInput.value.trim();
+          if (!val) return;
+          client.add(val, onTorrent);
+          $torrentInput.value = '';
+        };
+        $torrentList.onclick = function(e) {
+          let box = e.target.closest('[is-~="box"][data-torrent]');
+          if (!box) return;
+          const infoHash = box.getAttribute('data-infohash');
+          if (selectedTorrentInfoHash === infoHash) return;
+          selectedTorrentInfoHash = infoHash;
+          renderTorrents();
+        };
+      });
+      function renderTorrents() {
+        $torrentList.innerHTML = ''
+        let totalDown = 0, totalUp = 0, totalPeers = 0
+        client.torrents.forEach((torrent, idx) => {
+          totalDown += torrent.downloadSpeed
+          totalUp += torrent.uploadSpeed
+          totalPeers += torrent.numPeers
+          // Box container (authentic TUI)
+          const box = document.createElement('div')
+          box.setAttribute('is-', 'box')
+          box.setAttribute('box-', 'square')
+          box.setAttribute('shear-', 'top')
+          box.setAttribute('data-torrent', '')
+          if (selectedTorrentInfoHash === torrent.infoHash) box.classList.add('selected')
+          box.setAttribute('data-infohash', torrent.infoHash)
+          box.tabIndex = 0
+          box.setAttribute('data-idx', idx)
+          // Main info
+          const main = document.createElement('div')
+          main.setAttribute('is-', 'torrent-main')
+          // Title row
+          const titleRow = document.createElement('div')
+          titleRow.setAttribute('is-', 'torrent-title-row')
+          const nameSpan = document.createElement('span')
+          nameSpan.setAttribute('is-', 'torrent-name')
+          // Robustly sanitize torrent name
+          let rawName = torrent.name || '';
+          let displayName = rawName.trim();
+          if (!displayName || displayName === '-' || displayName === '.' || displayName === '–') {
+            displayName = 'Unknown';
+          }
+          nameSpan.textContent = displayName
+          titleRow.appendChild(nameSpan)
+          const sizeSpan = document.createElement('span')
+          sizeSpan.setAttribute('is-', 'torrent-size')
+          sizeSpan.textContent = torrent.length ? prettyBytes(torrent.length) : '0 B'
+          titleRow.appendChild(sizeSpan)
+          main.appendChild(titleRow)
+          // Progress bar (graphical style)
+          const progressBar = document.createElement('div')
+          progressBar.setAttribute('is-', 'torrent-progress-bar')
+          progressBar.setAttribute('data-infohash', torrent.infoHash)
+          const progressInner = document.createElement('div')
+          progressInner.setAttribute('is-', 'torrent-progress-inner')
+          progressInner.style.width = (torrent.progress * 100) + '%'
+          // Set progress bar color: yellow when downloading, green when completed
+          progressInner.style.background = torrent.done ? 'var(--green)' : 'var(--yellow)'
+          const progressLabel = document.createElement('div')
+          progressLabel.setAttribute('is-', 'torrent-progress-label')
+          progressLabel.textContent = Math.round(torrent.progress * 100) + '%'
+          progressBar.appendChild(progressInner)
+          progressBar.appendChild(progressLabel)
+          main.appendChild(progressBar)
+          // Meta row (including remove button)
+          const metaRow = document.createElement('div')
+          metaRow.setAttribute('is-', 'torrent-meta-row')
+          // Status badge
+          const badge = document.createElement('span')
+          badge.setAttribute('is-', 'badge badge-status')
+          badge.setAttribute('data-infohash', torrent.infoHash)
+          if (torrent.done) {
+            badge.setAttribute('variant-', 'green')
+            badge.textContent = 'Completed'
+          } else if (torrent.paused) {
+            badge.setAttribute('variant-', 'yellow')
+            badge.textContent = 'Paused'
+          } else {
+            badge.setAttribute('variant-', 'black')
+            badge.textContent = 'Downloading'
+          }
+          metaRow.appendChild(badge)
+          // Peers
+          const peersSpan = document.createElement('span')
+          peersSpan.setAttribute('is-', 'badge torrent-peers-badge')
+          peersSpan.setAttribute('variant-', 'blue')
+          peersSpan.textContent = ' Peers: ' + pad(torrent.numPeers, 2)
+          peersSpan.setAttribute('data-infohash', torrent.infoHash)
+          metaRow.appendChild(peersSpan)
+          // Down Speed
+          const downSpan = document.createElement('span')
+          downSpan.setAttribute('is-', 'badge torrent-down-badge')
+          downSpan.setAttribute('variant-', 'green')
+          downSpan.textContent = '↓ ' + pad(prettyBytes(torrent.downloadSpeed) + '/s', 12) // Increased padding
+          downSpan.setAttribute('data-infohash', torrent.infoHash)
+          metaRow.appendChild(downSpan)
+
+          // Up Speed
+          const upSpan = document.createElement('span')
+          upSpan.setAttribute('is-', 'badge torrent-up-badge')
+          upSpan.setAttribute('variant-', 'red')
+          upSpan.textContent = '↑ ' + pad(prettyBytes(torrent.uploadSpeed) + '/s', 12) // Increased padding
+          upSpan.setAttribute('data-infohash', torrent.infoHash)
+          metaRow.appendChild(upSpan)
+
+          // ETA
+          const etaSpan = document.createElement('span')
+          etaSpan.setAttribute('is-', 'badge torrent-eta-badge')
+          etaSpan.setAttribute('variant-', 'yellow')
+          etaSpan.textContent = '󱦟 ETA: ' + pad((torrent.done ? '0s' : prettyETA(torrent.timeRemaining/1000)), 10) // Increased padding
+          etaSpan.setAttribute('data-infohash', torrent.infoHash)
+          metaRow.appendChild(etaSpan)
+          // Remove button (now inline with metadata)
+          const removeBtn = document.createElement('button')
+          removeBtn.setAttribute('is-', 'button')
+          removeBtn.setAttribute('variant-', 'primary')
+          removeBtn.setAttribute('size-', 'small')
+          removeBtn.textContent = '[ Remove]'
+          removeBtn.title = 'Remove'
+          removeBtn.onclick = function(e) {
+            e.stopPropagation();
+            torrent.destroy();
+            // Remove from UI immediately
+            setTimeout(renderTorrents, 0);
+          }
+          metaRow.appendChild(removeBtn)
+          main.appendChild(metaRow)
+          box.appendChild(main)
+          // Expanded info section
+          if (selectedTorrentInfoHash === torrent.infoHash) {
+            const expanded = document.createElement('div')
+            expanded.setAttribute('is-', 'torrent-expanded-info')
+            expanded.style.position = 'relative'
+            
+            // Info
+            let infoHtml = '<div class="info-list">'
+            infoHtml += `<div class="info-list-item"><span class="info-label">Name:</span><span class="info-value">${torrent.name || 'Unknown'}</span></div>`
+            infoHtml += `<div class="info-list-item"><span class="info-label">Info Hash:</span><span class="info-value">${torrent.infoHash}</span></div>`
+            infoHtml += `<div class="info-list-item"><span class="info-label">Magnet URI:</span><span class="info-value">${torrent.magnetURI}</span></div>`
+            infoHtml += `<div class="info-list-item"><span class="info-label">Files:</span><span class="info-value">${torrent.files.length}</span></div>`
+            infoHtml += `<div class="info-list-item"><span class="info-label">Size:</span><span class="info-value">${prettyBytes(torrent.length)}</span></div>`
+            infoHtml += '</div>'
+            expanded.innerHTML = infoHtml
+            
+            // Minimize button (top right) - add after innerHTML
+            const minimizeBtn = document.createElement('button')
+            minimizeBtn.setAttribute('is-', 'button')
+            minimizeBtn.setAttribute('variant-', 'primary')
+            minimizeBtn.setAttribute('size-', 'small')
+            minimizeBtn.textContent = '[ Minimize]'
+            minimizeBtn.title = 'Minimize'
+            minimizeBtn.style.position = 'absolute'
+            minimizeBtn.style.top = '1ch'
+            minimizeBtn.style.right = '1ch'
+            minimizeBtn.style.zIndex = '10'
+            minimizeBtn.onclick = function(e) {
+              e.stopPropagation();
+              selectedTorrentInfoHash = null;
+              renderTorrents();
+            }
+            expanded.appendChild(minimizeBtn)
+            // Files
+            let filesHtml = '<ul is-="file-list">'
+            torrent.files.forEach((file, fidx) => {
+              filesHtml += `<li is-="file-list-item">
+                <span is-="file-name">${file.name}</span>
+                <span is-="file-size">${prettyBytes(file.length)}</span>
+                <span class="file-download-btn" id="file-download-btn-${idx}-${fidx}"></span>
+              </li>`
+            })
+            filesHtml += '</ul>'
+            const filesDiv = document.createElement('div')
+            filesDiv.innerHTML = filesHtml
+            expanded.appendChild(filesDiv)
+            box.appendChild(expanded)
+            // Attach download buttons (with caching) after DOM is ready
+            let cache = fileBlobUrlCache.get(torrent.infoHash);
+            if (!cache) {
+              cache = {};
+              fileBlobUrlCache.set(torrent.infoHash, cache);
+            }
+            setTimeout(() => {
+              torrent.files.forEach((file, fidx) => {
+                const el = document.getElementById(`file-download-btn-${idx}-${fidx}`)
+                if (!el) return;
+                if (cache[fidx]) {
+                  // Use cached URL
+                  const btn = document.createElement('button')
+                  btn.download = file.name
+                  btn.textContent = '[ Save]'
+                  btn.setAttribute('is-', 'button')
+                  btn.setAttribute('variant-', 'primary')
+                  btn.setAttribute('size-', 'small')
+                  btn.className = 'download-link'
+                  btn.onclick = function() {
+                    const link = document.createElement('a')
+                    link.href = cache[fidx]
+                    link.download = file.name
+                    link.click()
+                  }
+                  el.appendChild(btn)
+                } else {
+                  file.getBlob(function(err, blob) {
+                    if (!err) {
+                      const url = URL.createObjectURL(blob)
+                      cache[fidx] = url
+                      const btn = document.createElement('button')
+                      btn.download = file.name
+                      btn.textContent = '[ Save]'
+                      btn.setAttribute('is-', 'button')
+                      btn.setAttribute('variant-', 'primary')
+                      btn.setAttribute('size-', 'small')
+                      btn.className = 'download-link'
+                      btn.onclick = function() {
+                        const link = document.createElement('a')
+                        link.href = url
+                        link.download = file.name
+                        link.click()
+                      }
+                      el.appendChild(btn)
+                    }
+                  })
+                }
+              })
+            }, 0);
+          }
+          // Box click handler
+          box.onclick = function(e) {
+            // Only select if not clicking an action button
+            if (e.target.closest('[is-~="torrent-actions"]')) return;
+            if (selectedTorrentInfoHash === torrent.infoHash) return;
+            selectedTorrentInfoHash = torrent.infoHash;
+            renderTorrents();
+          }
+          $torrentList.appendChild(box)
+        })
+        $statusTorrents.textContent = client.torrents.length
+        $statusDown.textContent = prettyBytes(totalDown) + '/s'
+        $statusUp.textContent = prettyBytes(totalUp) + '/s'
+        $statusPeers.textContent = totalPeers
+      }
+
+      // Efficiently update only stats every second
+      function updateTorrentStats() {
+        let totalDown = 0, totalUp = 0, totalPeers = 0;
+        client.torrents.forEach((torrent) => {
+          totalDown += torrent.downloadSpeed;
+          totalUp += torrent.uploadSpeed;
+          totalPeers += torrent.numPeers;
+          // Progress bar (graphical style)
+          const progressBar = document.querySelector('[is-~="torrent-progress-bar"][data-infohash="' + torrent.infoHash + '"]');
+          if (progressBar) {
+            const progressInner = progressBar.querySelector('[is-~="torrent-progress-inner"]');
+            const progressLabel = progressBar.querySelector('[is-~="torrent-progress-label"]');
+            if (progressInner) {
+              progressInner.style.width = (torrent.progress * 100) + '%';
+              // Set progress bar color: yellow when downloading, green when completed
+              progressInner.style.background = torrent.done ? 'var(--green)' : 'var(--yellow)';
+            }
+            if (progressLabel) progressLabel.textContent = Math.round(torrent.progress * 100) + '%';
+          }
+          // Status badge
+          const badge = document.querySelector('[is-~="badge-status"][data-infohash="' + torrent.infoHash + '"]');
+          if (badge) {
+            if (torrent.done) {
+              badge.setAttribute('variant-', 'green');
+              badge.textContent = 'Completed';
+            } else {
+              badge.setAttribute('variant-', 'yellow');
+              badge.textContent = 'Downloading';
+            }
+          }
+          // Peers
+          const peersSpan = document.querySelector('[is-~="torrent-peers-badge"][data-infohash="' + torrent.infoHash + '"]');
+          if (peersSpan) peersSpan.textContent = ' Peers: ' + pad(torrent.numPeers, 2);
+          // Down Speed
+          const downSpan = document.querySelector('[is-~="torrent-down-badge"][data-infohash="' + torrent.infoHash + '"]');
+          if (downSpan) downSpan.textContent = '↓ ' + pad(prettyBytes(torrent.downloadSpeed) + '/s', 12);
+
+          // Up Speed
+          const upSpan = document.querySelector('[is-~="torrent-up-badge"][data-infohash="' + torrent.infoHash + '"]');
+          if (upSpan) upSpan.textContent = '↑ ' + pad(prettyBytes(torrent.uploadSpeed) + '/s', 12);
+
+          // ETA
+          const etaSpan = document.querySelector('[is-~="torrent-eta-badge"][data-infohash="' + torrent.infoHash + '"]');
+          if (etaSpan) etaSpan.textContent = '󱦟 ETA: ' + pad((torrent.done ? '0s' : prettyETA(torrent.timeRemaining/1000)), 10);
+        });
+        $statusTorrents.textContent = client.torrents.length;
+        $statusDown.textContent = prettyBytes(totalDown) + '/s';
+        $statusUp.textContent = prettyBytes(totalUp) + '/s';
+        $statusPeers.textContent = totalPeers;
+      }
+
+      // Only re-render on add/remove/select
+      function onTorrent(torrent) {
+        // Clean up blob URLs when torrent is destroyed
+        torrent.on('destroyed', function() {
+          const cache = fileBlobUrlCache.get(torrent.infoHash);
+          if (cache) {
+            Object.values(cache).forEach(url => URL.revokeObjectURL(url));
+            fileBlobUrlCache.delete(torrent.infoHash);
+          }
+        });
+        renderTorrents();
+        torrent.on('done', function() {
+          updateTorrentStats();
+        });
+        torrent.on('download', updateTorrentStats);
+        torrent.on('upload', updateTorrentStats);
+        torrent.on('wire', updateTorrentStats);
+        torrent.on('noPeers', updateTorrentStats);
+        torrent.on('error', updateTorrentStats);
+        torrent.on('warning', updateTorrentStats);
+        torrent.on('destroyed', updateTorrentStats);
+      }
+
+      // Initial render
+      renderTorrents();
+      setInterval(updateTorrentStats, 1000);
+
+      // Theme switching function
+      function setTheme(themeName) {
+        const html = document.documentElement;
+        html.setAttribute('data-webtui-theme', themeName);
+        
+        // Save theme preference to localStorage
+        localStorage.setItem('webtui-theme', themeName);
+        
+        // Close the popover
+        const popover = document.querySelector('[is-~="popover"]');
+        if (popover && popover.open) {
+          popover.removeAttribute('open');
+        }
+      }
+
+      // Load saved theme preference on page load
+      window.addEventListener('DOMContentLoaded', function() {
+        const savedTheme = localStorage.getItem('webtui-theme');
+        if (savedTheme) {
+          document.documentElement.setAttribute('data-webtui-theme', savedTheme);
+        }
+      });
+    </script>
+  </body>
+</html> 

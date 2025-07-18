@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <rect width="32" height="32" fill="#1e1e2e"/>
+  <text x="16" y="22" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">
+    <tspan fill="#89b4fa">[</tspan>
+    <tspan fill="#a6e3a1">bit</tspan>
+    <tspan fill="#f9e2af">Term</tspan>
+    <tspan fill="#89b4fa">]</tspan>
+  </text>
+</svg> 
