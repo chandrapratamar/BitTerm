@@ -23,8 +23,8 @@ A modern, terminal-styled WebTorrent client built with WebTUI CSS framework. Exp
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
-   cd TOOR
+   git clone https://github.com/chandrapratamar/BitTerm/
+   cd BitTerm
    ```
 
 2. **Install dependencies**
@@ -44,8 +44,8 @@ A modern, terminal-styled WebTorrent client built with WebTUI CSS framework. Exp
 
 The client supports multiple WebTUI themes:
 
-- **Catppuccin Mocha** (default) - Warm, cozy dark theme
-- **Nord** - Arctic-inspired color palette
+- **Catppuccin Mocha** (default)
+- **Nord** 
 - **Dark** 
 - **Light**
 
@@ -71,9 +71,7 @@ TOOR/
 
 ### Adding Torrents
 
-1. **Magnet Links**: Paste a magnet link into the input field and press Enter
-2. **Torrent Files**: Drag and drop `.torrent` files onto the page
-3. **Info Hash**: Enter a torrent info hash to start downloading
+1. **Magnet Links/Torrent URL**: Paste a magnet link/torrent URL into the input field and press Enter
 
 ### Managing Downloads
 
@@ -82,84 +80,11 @@ TOOR/
 - **Peer Information**: See connected peers and transfer speeds
 - **Remove Torrents**: Click the remove button to stop and remove torrents
 
-### Keyboard Shortcuts
-
-- **Enter**: Add torrent from input field
-- **Click**: Select torrent for detailed view
-- **Download buttons**: Download individual files
-
-## 🌐 Deployment
-
-### Railway.app Deployment
-
-1. **Connect your repository** to Railway
-2. **Set environment variables** (if needed)
-3. **Deploy automatically** on push to main branch
-
-The app is ready for Railway deployment with the included `server.js` Express server.
-
-### Other Platforms
-
-The client can be deployed to any static hosting service:
-- Vercel
-- Netlify
-- GitHub Pages
-- Any web server
-
-## 🛠️ Development
-
-### Local Development
-
-```bash
-# Start development server
-npm run dev
-
-# Or use the start script
-npm start
-```
-
-### Customization
-
-- **Themes**: Add new themes in the `theme-*/` directories
-- **Styling**: Modify WebTUI CSS classes in `index.html`
-- **Functionality**: Extend WebTorrent features in the JavaScript section
-
-## 🔒 Privacy & Security
-
-- **No Server Storage**: Torrents are processed entirely in the browser
-- **WebRTC Only**: Uses peer-to-peer connections for data transfer
-- **No Logging**: No torrent activity is logged on the server
-- **Client-Side**: All torrent operations happen locally
-
-## 📦 Dependencies
-
-- **Express.js**: Web server for hosting
-- **WebTorrent**: Browser-based BitTorrent client
-- **WebTUI**: Terminal user interface CSS framework
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
 - [WebTorrent](https://webtorrent.io/) - Browser-based BitTorrent client
 - [WebTUI](https://webtui.ironclad.sh/) - Terminal user interface CSS framework
-- [Nerd Fonts](https://www.nerdfonts.com/) - Icon font for terminal applications
-
-## 📞 Support
-
-- **Issues**: Report bugs and feature requests on GitHub
-- **Discussions**: Join community discussions
-- **Documentation**: Check the WebTUI and WebTorrent documentation
 
 ---
 
