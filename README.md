@@ -2,6 +2,17 @@
 
 A modern, terminal-styled WebTorrent client built with WebTUI CSS framework. Experience the power of WebTorrent with an authentic terminal user interface (TUI) aesthetic.
 
+> [!NOTE]
+> **This client supports only WebRTC-based torrents.**  
+> It connects only to browser/WebRTC-compatible peers via WebRTC trackers.  
+> Traditional BitTorrent clients (using TCP/UDP) are **not supported**.  
+> 
+> ✅ Use magnet links or `.torrent` files that include **WebRTC trackers**, such as:  
+> `wss://tracker.openwebtorrent.com`, `wss://tracker.btorrent.xyz`
+> 
+> 🔗 **Example torrents**: You can find compatible torrents at  
+> [https://webtorrent.io/free-torrents](https://webtorrent.io/free-torrents)
+
 
 ## ✨ Features
 
